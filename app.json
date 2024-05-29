@@ -3,6 +3,7 @@
     "name": "bluetooth-connection",
     "slug": "bluetooth-connection",
     "version": "1.0.0",
+    "buildNumber": "2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -32,6 +33,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ff16c220-5e7f-40d8-97fb-4ecc3ece25b1"
+      }
     }
   }
 }

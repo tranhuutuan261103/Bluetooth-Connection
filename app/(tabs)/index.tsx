@@ -6,22 +6,22 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import useBle from '@/hooks/useBle';
+// import useBle from '@/hooks/useBle';
 
 export default function HomeScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
-  const { requestPermission } = useBle();
+  // const { requestPermission } = useBle();
 
   const hiddenModal = () => {
 
   }
 
   const showModal = () => {
-      requestPermission((granted) => {
-          if (granted) {
-              setModalVisible(true);
-          }
-      });
+      // requestPermission((granted) => {
+      //     if (granted) {
+      //         setModalVisible(true);
+      //     }
+      // });
   }
 
   return (

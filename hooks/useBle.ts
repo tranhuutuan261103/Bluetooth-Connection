@@ -1,3 +1,4 @@
+// useBle.ts (or useBle.js)
 import { PermissionsAndroid } from "react-native";
 import { useState } from "react";
 import { BleManager, Device } from "react-native-ble-plx";
@@ -12,7 +13,7 @@ interface BluetoothLowEnergyApi {
     allDevices: Device[];
 }
 
-export default function useBle(): BluetoothLowEnergyApi {
+const useBle = (): BluetoothLowEnergyApi => {
     const [devices, setDevices] = useState<Device[]>([]);
 
     const requestPermission = async(callback: PermissionCallback) => {
@@ -59,4 +60,6 @@ export default function useBle(): BluetoothLowEnergyApi {
         scanForDevices,
         allDevices: devices,
     };
-}
+};
+
+export default useBle;

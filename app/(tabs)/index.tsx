@@ -6,22 +6,20 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-// import useBle from '@a/hooks/useBle';
+import { BleManager } from 'react-native-ble-plx';
+
+const manager = new BleManager();
 
 export default function HomeScreen() {
-  const [isModalVisible, setModalVisible] = useState(false);
-  // const { requestPermission } = useBle();
+  const [devices, setDevices] = useState(null);
 
-  const hiddenModal = () => {
-
-  }
-
-  const showModal = () => {
-      // requestPermission((granted) => {
-      //     if (granted) {
-      //         setModalVisible(true);
-      //     }
-      // });
+  const searchDevices = () => {
+    manager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+    });
   }
 
   return (
@@ -40,7 +38,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.stepContainer}>
         <Button
           title="Get list of Bluetooth devices"
-          onPress={showModal}
+          onPress={searchDevices}
         />
       </ThemedView>
     </ParallaxScrollView>

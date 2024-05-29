@@ -6,7 +6,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-// import useBle from '@/hooks/useBle';
+// import useBle from '@a/hooks/useBle';
 
 export default function HomeScreen() {
   const [isModalVisible, setModalVisible] = useState(false);

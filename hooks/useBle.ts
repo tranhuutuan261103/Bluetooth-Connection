@@ -10,11 +10,17 @@ const bleManager = new BleManager();
 interface BluetoothLowEnergyApi {
     requestPermission: (callback: PermissionCallback) => Promise<void>;
     scanForDevices: () => Promise<void>;
+    stopScanning: () => void;
+    connectToDevice: (deviceId: string) => Promise<void>;
+    connectedDevice: Device | null;
     allDevices: Device[];
+    resetDevices: () => void;
+    disconnectFromDevice: () => void;
 }
 
 const useBle = (): BluetoothLowEnergyApi => {
     const [devices, setDevices] = useState<Device[]>([]);
+    const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
 
     const requestPermission = async(callback: PermissionCallback) => {
         try {
@@ -55,10 +61,75 @@ const useBle = (): BluetoothLowEnergyApi => {
         });
     }
 
+    const stopScanning = () => {
+        bleManager.stopDeviceScan();
+    }
+
+    const connectToDevice = async (deviceId: string) => {
+        try {
+          const deviceConnection = await bleManager.connectToDevice(deviceId);
+          // login to the device
+            console.log('Connected to Device', deviceConnection.id);
+            await deviceConnection.discoverAllServicesAndCharacteristics();
+
+          setConnectedDevice(deviceConnection);
+          bleManager.stopDeviceScan();
+          await startStreamingData(deviceConnection);
+        } catch (e) {
+          console.log('FAILED TO CONNECT', e);
+        }
+      };
+
+      const startStreamingData = async (device: Device) => {
+        if (device) {
+            console.log('Device Connected');
+          // send data to the device
+            bleManager.writeCharacteristicWithResponseForDevice(
+                device.id,
+                'serviceId',
+                'characteristicId',
+                'data',
+            );
+            // read data from the device
+
+            bleManager.monitorCharacteristicForDevice(
+                device.id,
+                'serviceId',
+                'characteristicId',
+                (error, characteristic) => {
+                    if (error) {
+                        console.error(error);
+                        return;
+                    }
+                    console.log(characteristic);
+                }
+            );
+        } else {
+          console.log('No Device Connected');
+        }
+      };
+
+    const resetDevices = () => {
+        setDevices([]);
+    }
+
+    const disconnectFromDevice = async () => {
+        if (connectedDevice) {
+          await bleManager.cancelDeviceConnection(connectedDevice.id);
+          setConnectedDevice(null);
+          console.log('Device Disconnected');
+        }
+      };
+
     return {
         requestPermission,
         scanForDevices,
         allDevices: devices,
+        stopScanning,
+        connectToDevice,
+        connectedDevice,
+        resetDevices,
+        disconnectFromDevice,
     };
 };
 

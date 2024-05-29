@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
-import { Image, StyleSheet, Platform, Button } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, StyleSheet, ScrollView, Button, TouchableOpacity, PermissionsAndroid } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import { BleManager } from 'react-native-ble-plx';
-
-const manager = new BleManager();
+import useBle from '@/hooks/useBle';
 
 export default function HomeScreen() {
-  const [devices, setDevices] = useState(null);
+  const {
+    requestPermission,
+    scanForDevices,
+    connectToDevice,
+    resetDevices,
+    stopScanning,
+    allDevices,
+    disconnectFromDevice,
+  } = useBle();
 
-  const searchDevices = () => {
-    manager.startDeviceScan(null, null, (error, device) => {
-      if (error) {
-        console.error(error);
-        return;
-      }
-    });
-  }
+  useEffect(() => {
+    
+  }, []);
 
   return (
     <ParallaxScrollView
@@ -38,9 +39,35 @@ export default function HomeScreen() {
       <ThemedView style={styles.stepContainer}>
         <Button
           title="Get list of Bluetooth devices"
-          onPress={searchDevices}
+          onPress={scanForDevices}
+        />
+        <Button
+          title="Reset devices list"
+          onPress={resetDevices}
+        />
+        <Button
+          title="Stop scanning for devices"
+          onPress={stopScanning}
+        />
+        <Button
+          title="Connect to device"
+          onPress={() => connectToDevice("00:22:12:01:60:77")}
+        />
+        <Button
+          title="Disconnect from device"
+          onPress={disconnectFromDevice}
         />
       </ThemedView>
+      <ScrollView>
+        {allDevices.map((device) => (
+          <TouchableOpacity
+            key={device.id}
+            onPress={() => connectToDevice(device.id)}
+          >
+            <ThemedText key={device.id}>{`${device.id} ${device.localName}`}</ThemedText>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </ParallaxScrollView>
   );
 }

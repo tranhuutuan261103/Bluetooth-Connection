@@ -100,7 +100,7 @@ export default function TabTwoScreen() {
   };
   // pair with device first before connecting to it
   const connectToPeripheral = peripheral => {
-    BleManager.createBond(peripheral.id)
+    BleManager.createBond("4C:24:98:2C:1C:1F")
       .then(() => {
         peripheral.connected = true;
         peripherals.set(peripheral.id, peripheral);

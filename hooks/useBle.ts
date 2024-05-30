@@ -1,11 +1,15 @@
 // useBle.ts (or useBle.js)
 import { PermissionsAndroid } from "react-native";
 import { useState } from "react";
-import { BleManager, Device } from "react-native-ble-plx";
+import { BleManager, Device, Service, Characteristic, BleError } from "react-native-ble-plx";
+import { Buffer } from "buffer";
 
 type PermissionCallback = (granted: boolean) => void;
 
 const bleManager = new BleManager();
+
+const service = '0000FFE0-0000-1000-8000-00805F9B34FB';
+const characteristic = '0000FFE1-0000-1000-8000-00805F9B34FB';
 
 interface BluetoothLowEnergyApi {
     requestPermission: (callback: PermissionCallback) => Promise<void>;
@@ -16,13 +20,17 @@ interface BluetoothLowEnergyApi {
     allDevices: Device[];
     resetDevices: () => void;
     disconnectFromDevice: () => void;
+    startStreamingData: () => Promise<void>;
+    sendDataStream: (data: string) => Promise<void>;
+    streamData: string;
 }
 
 const useBle = (): BluetoothLowEnergyApi => {
     const [devices, setDevices] = useState<Device[]>([]);
     const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+    const [streamData, setStreamData] = useState<string>("");
 
-    const requestPermission = async(callback: PermissionCallback) => {
+    const requestPermission = async (callback: PermissionCallback) => {
         try {
             const granted = await PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -41,16 +49,19 @@ const useBle = (): BluetoothLowEnergyApi => {
         }
     }
 
-    const isDuplicateDevice = (devices: Device[], nextDevice: Device) => 
+    const isDuplicateDevice = (devices: Device[], nextDevice: Device) =>
         devices.findIndex((device) => device.id === nextDevice.id) !== -1;
 
-    const scanForDevices = async() => {
+    const scanForDevices = async () => {
         bleManager.startDeviceScan(null, null, (error, device) => {
             if (error) {
                 console.error(error);
                 return;
             }
-            if (device) {
+            if (device && device.name) {
+                if (device.name === 'BT05') {
+                    stopScanning();
+                }
                 setDevices((prevDevices) => {
                     if (isDuplicateDevice(prevDevices, device)) {
                         return prevDevices;
@@ -67,47 +78,77 @@ const useBle = (): BluetoothLowEnergyApi => {
 
     const connectToDevice = async (deviceId: string) => {
         try {
-          const deviceConnection = await bleManager.connectToDevice(deviceId);
-          // login to the device
+            const deviceConnection = await bleManager.connectToDevice(deviceId);
+            // login to the device
             console.log('Connected to Device', deviceConnection.id);
-            await deviceConnection.discoverAllServicesAndCharacteristics();
+            deviceConnection.discoverAllServicesAndCharacteristics()
+                .then((results) => {
+                    console.log(results);
+                    bleManager.servicesForDevice(deviceId)
+                        .then((services) => {
+                            console.log(services);
+                        });
+                    bleManager.characteristicsForDevice(deviceId, service)
+                        .then((characteristics) => {
+                            console.log(characteristics);
+                        });
+                });
 
-          setConnectedDevice(deviceConnection);
-          bleManager.stopDeviceScan();
-          await startStreamingData(deviceConnection);
+            setConnectedDevice(deviceConnection);
         } catch (e) {
-          console.log('FAILED TO CONNECT', e);
+            console.error(e);
         }
-      };
+    };
 
-      const startStreamingData = async (device: Device) => {
-        if (device) {
-            console.log('Device Connected');
-          // send data to the device
-            bleManager.writeCharacteristicWithResponseForDevice(
-                device.id,
-                'serviceId',
-                'characteristicId',
-                'data',
-            );
-            // read data from the device
+    const startStreamingData = async () => {
+        if (connectedDevice) {
 
-            bleManager.monitorCharacteristicForDevice(
-                device.id,
-                'serviceId',
-                'characteristicId',
+            connectedDevice.monitorCharacteristicForService(
+                service,
+                characteristic,
                 (error, characteristic) => {
-                    if (error) {
-                        console.error(error);
-                        return;
-                    }
-                    console.log(characteristic);
+                    onStreamDataChange(error, characteristic);
                 }
             );
         } else {
-          console.log('No Device Connected');
+            console.log('No Device Connected');
         }
-      };
+    };
+
+    const onStreamDataChange = (
+        error: BleError | null,
+        characteristic: Characteristic | null,
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log('No Data was recieved');
+            return -1;
+        }
+
+        const rawData = atob(characteristic.value);
+
+        console.log('Raw data:', rawData);
+
+        setStreamData(rawData);
+    };
+
+    const sendDataStream = async (data: string) => {
+        if (connectedDevice) {
+            const buffer = Buffer.from(data);
+            connectedDevice.writeCharacteristicWithResponseForService(
+                service,
+                characteristic,
+                buffer.toString('base64'),
+            ).then((result) => {
+                console.log('Data Sent', result);
+            }
+            ).catch((error) => {
+                console.error(error);
+            });
+        }
+    }
 
     const resetDevices = () => {
         setDevices([]);
@@ -115,11 +156,11 @@ const useBle = (): BluetoothLowEnergyApi => {
 
     const disconnectFromDevice = async () => {
         if (connectedDevice) {
-          await bleManager.cancelDeviceConnection(connectedDevice.id);
-          setConnectedDevice(null);
-          console.log('Device Disconnected');
+            await bleManager.cancelDeviceConnection(connectedDevice.id);
+            setConnectedDevice(null);
+            console.log('Device Disconnected');
         }
-      };
+    };
 
     return {
         requestPermission,
@@ -130,6 +171,9 @@ const useBle = (): BluetoothLowEnergyApi => {
         connectedDevice,
         resetDevices,
         disconnectFromDevice,
+        startStreamingData,
+        sendDataStream,
+        streamData,
     };
 };
 

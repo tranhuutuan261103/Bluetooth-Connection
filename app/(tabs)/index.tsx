@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, ScrollView, Button, TouchableOpacity, PermissionsAndroid } from 'react-native';
+import { Image, StyleSheet, ScrollView, Button, TouchableOpacity, PermissionsAndroid, TextInput } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -16,11 +16,17 @@ export default function HomeScreen() {
     resetDevices,
     stopScanning,
     allDevices,
+    connectedDevice,
     disconnectFromDevice,
+    startStreamingData,
+    streamData,
+    sendDataStream
   } = useBle();
 
+  const [data, setData] = useState('');
+
   useEffect(() => {
-    
+
   }, []);
 
   return (
@@ -33,7 +39,7 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText type="title">Welcome! {streamData}</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
@@ -42,22 +48,32 @@ export default function HomeScreen() {
           onPress={scanForDevices}
         />
         <Button
-          title="Reset devices list"
-          onPress={resetDevices}
+          title="Start streaming data"
+          onPress={
+            startStreamingData
+          }
         />
         <Button
           title="Stop scanning for devices"
           onPress={stopScanning}
         />
         <Button
-          title="Connect to device"
-          onPress={() => connectToDevice("00:22:12:01:60:77")}
-        />
-        <Button
           title="Disconnect from device"
           onPress={disconnectFromDevice}
         />
       </ThemedView>
+      {
+        connectedDevice && (
+          <ThemedView>
+            <ThemedText>{`Connected to ${connectedDevice.id}`}</ThemedText>
+            <TextInput onChangeText={setData} value={data} />
+            <Button
+              title="Send data"
+              onPress={() => sendDataStream(data)}
+            />
+          </ThemedView>
+        )
+      }
       <ScrollView>
         {allDevices.map((device) => (
           <TouchableOpacity

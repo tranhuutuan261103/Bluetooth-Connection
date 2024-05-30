@@ -12,17 +12,19 @@ const service = '0000FFE0-0000-1000-8000-00805F9B34FB';
 const characteristic = '0000FFE1-0000-1000-8000-00805F9B34FB';
 
 interface BluetoothLowEnergyApi {
+    allDevices: Device[];
+    connectedDevice: Device | null;
+    streamData: string;
+
     requestPermission: (callback: PermissionCallback) => Promise<void>;
     scanForDevices: () => Promise<void>;
     stopScanning: () => void;
+
     connectToDevice: (deviceId: string) => Promise<void>;
-    connectedDevice: Device | null;
-    allDevices: Device[];
-    resetDevices: () => void;
     disconnectFromDevice: () => void;
+
     startStreamingData: () => Promise<void>;
     sendDataStream: (data: string) => Promise<void>;
-    streamData: string;
 }
 
 const useBle = (): BluetoothLowEnergyApi => {
@@ -53,6 +55,7 @@ const useBle = (): BluetoothLowEnergyApi => {
         devices.findIndex((device) => device.id === nextDevice.id) !== -1;
 
     const scanForDevices = async () => {
+        setDevices([]);
         bleManager.startDeviceScan(null, null, (error, device) => {
             if (error) {
                 console.error(error);
@@ -92,6 +95,10 @@ const useBle = (): BluetoothLowEnergyApi => {
                         .then((characteristics) => {
                             console.log(characteristics);
                         });
+                        startStreamingData();
+                })
+                .catch((error) => {
+                    console.error(error);
                 });
 
             setConnectedDevice(deviceConnection);
@@ -145,35 +152,31 @@ const useBle = (): BluetoothLowEnergyApi => {
                 console.log('Data Sent', result);
             }
             ).catch((error) => {
-                console.error(error);
+                console.log(error);
             });
         }
     }
 
-    const resetDevices = () => {
-        setDevices([]);
-    }
-
     const disconnectFromDevice = async () => {
         if (connectedDevice) {
+            const deviceId = connectedDevice.id;
             await bleManager.cancelDeviceConnection(connectedDevice.id);
             setConnectedDevice(null);
-            console.log('Device Disconnected');
+            console.log(`Device ${deviceId} Disconnected`);
         }
     };
 
     return {
+        allDevices: devices,
+        connectedDevice,
+        streamData,
         requestPermission,
         scanForDevices,
-        allDevices: devices,
         stopScanning,
         connectToDevice,
-        connectedDevice,
-        resetDevices,
         disconnectFromDevice,
         startStreamingData,
         sendDataStream,
-        streamData,
     };
 };
 

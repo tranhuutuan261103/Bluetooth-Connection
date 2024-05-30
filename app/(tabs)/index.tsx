@@ -10,24 +10,33 @@ import useBle from '@/hooks/useBle';
 
 export default function HomeScreen() {
   const {
-    requestPermission,
-    scanForDevices,
-    connectToDevice,
-    resetDevices,
-    stopScanning,
     allDevices,
     connectedDevice,
-    disconnectFromDevice,
-    startStreamingData,
     streamData,
+
+    requestPermission,
+    scanForDevices,
+    stopScanning,
+
+    connectToDevice,
+    disconnectFromDevice,
+
+    startStreamingData,
     sendDataStream
   } = useBle();
 
   const [data, setData] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
 
-  useEffect(() => {
+  const handleStopScanning = () => {
+    setIsScanning(false);
+    stopScanning();
+  };
 
-  }, []);
+  const handleScanForDevices = async () => {
+    setIsScanning(true);
+    await scanForDevices();
+  }
 
   return (
     <ParallaxScrollView
@@ -39,41 +48,16 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome! {streamData}</ThemedText>
+        <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <Button
-          title="Get list of Bluetooth devices"
-          onPress={scanForDevices}
-        />
-        <Button
-          title="Start streaming data"
-          onPress={
-            startStreamingData
-          }
-        />
-        <Button
-          title="Stop scanning for devices"
-          onPress={stopScanning}
-        />
-        <Button
-          title="Disconnect from device"
-          onPress={disconnectFromDevice}
-        />
+        {
+          isScanning
+            ? <Button title="Stop scanning" onPress={handleStopScanning} />
+            : <Button title="Scan for devices" onPress={handleScanForDevices} />
+        }
       </ThemedView>
-      {
-        connectedDevice && (
-          <ThemedView>
-            <ThemedText>{`Connected to ${connectedDevice.id}`}</ThemedText>
-            <TextInput onChangeText={setData} value={data} />
-            <Button
-              title="Send data"
-              onPress={() => sendDataStream(data)}
-            />
-          </ThemedView>
-        )
-      }
       <ScrollView>
         {allDevices.map((device) => (
           <TouchableOpacity
@@ -83,6 +67,24 @@ export default function HomeScreen() {
             <ThemedText key={device.id}>{`${device.id} ${device.localName}`}</ThemedText>
           </TouchableOpacity>
         ))}
+        {
+        connectedDevice && (
+          <ThemedView>
+            <ThemedText>{`Connected to ${connectedDevice.id}`}</ThemedText>
+            <TextInput onChangeText={setData} value={data} 
+              style={{ padding: 16, backgroundColor: '#E0E0E0', borderRadius: 8, margin: 16 }}
+            />
+            <Button
+              title="Send data"
+              onPress={() => sendDataStream(`${data}\n`)}
+            />
+            <Button
+              title="Disconnect from device"
+              onPress={disconnectFromDevice}
+            />
+          </ThemedView>
+        )
+      }
       </ScrollView>
     </ParallaxScrollView>
   );

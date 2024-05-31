@@ -23,8 +23,8 @@ interface BluetoothLowEnergyApi {
     connectToDevice: (deviceId: string) => Promise<void>;
     disconnectFromDevice: () => void;
 
-    startStreamingData: () => Promise<void>;
     sendDataStream: (data: string) => Promise<void>;
+    startStreamingData: () => Promise<void>;
 }
 
 const useBle = (): BluetoothLowEnergyApi => {
@@ -85,22 +85,19 @@ const useBle = (): BluetoothLowEnergyApi => {
             // login to the device
             console.log('Connected to Device', deviceConnection.id);
             deviceConnection.discoverAllServicesAndCharacteristics()
-                .then((results) => {
-                    console.log(results);
+                .then(() => {
                     bleManager.servicesForDevice(deviceId)
                         .then((services) => {
-                            console.log(services);
+                            // console.log(services);
                         });
                     bleManager.characteristicsForDevice(deviceId, service)
                         .then((characteristics) => {
-                            console.log(characteristics);
+                            // console.log(characteristics);
                         });
-                        startStreamingData();
                 })
                 .catch((error) => {
                     console.error(error);
                 });
-
             setConnectedDevice(deviceConnection);
         } catch (e) {
             console.error(e);
@@ -109,7 +106,7 @@ const useBle = (): BluetoothLowEnergyApi => {
 
     const startStreamingData = async () => {
         if (connectedDevice) {
-
+            console.log('Starting Stream');
             connectedDevice.monitorCharacteristicForService(
                 service,
                 characteristic,
@@ -136,8 +133,6 @@ const useBle = (): BluetoothLowEnergyApi => {
 
         const rawData = atob(characteristic.value);
 
-        console.log('Raw data:', rawData);
-
         setStreamData(rawData);
     };
 
@@ -151,8 +146,14 @@ const useBle = (): BluetoothLowEnergyApi => {
             ).then((result) => {
                 console.log('Data Sent', result);
             }
-            ).catch((error) => {
-                console.log(error);
+            ).catch((error: BleError) => {
+                if (error.errorCode === 401) {
+                    console.log('Data Send: ', data);
+                } else {
+                    console.error(error);
+                }
+            }).catch((error) => {
+                console.error(error);
             });
         }
     }
@@ -175,8 +176,8 @@ const useBle = (): BluetoothLowEnergyApi => {
         stopScanning,
         connectToDevice,
         disconnectFromDevice,
-        startStreamingData,
         sendDataStream,
+        startStreamingData,
     };
 };
 

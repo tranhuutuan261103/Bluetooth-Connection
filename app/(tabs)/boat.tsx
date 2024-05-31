@@ -3,7 +3,7 @@ import { Dimensions, View, Text, ScrollView, Image, StyleSheet, TouchableNativeF
 import Animated from 'react-native-reanimated';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link } from 'expo-router';
+import ButtonControl from '@/components/ButtonControl';
 import PowerPanel from '@/components/PowerPanel';
 import ParallaxScrollView from '@/components/ParallaxScrollViewBoat';
 import { ThemedText } from '@/components/ThemedText';
@@ -11,24 +11,44 @@ import { ThemedView } from '@/components/ThemedView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+import useBle from '@/hooks/useBle';
+
 export default function BoatControllerScreen() {
+    const {
+        allDevices,
+        connectedDevice,
+        streamData,
+    
+        requestPermission,
+        scanForDevices,
+        stopScanning,
+    
+        connectToDevice,
+        disconnectFromDevice,
+    
+        sendDataStream,
+        startStreamingData,
+    } = useBle();
+
     const maxPower = 180;
     const [powerLeft, setPowerLeft] = useState(0);
     const [powerRight, setPowerRight] = useState(0);
 
     const changePower = (request: {direction: string}) => {
         if (request.direction === 'left') {
-            setPowerLeft(powerLeft + 10 < maxPower ? powerLeft + 10 : maxPower);
+            sendDataStream(`a`);
         } else if (request.direction === 'right') {
-            setPowerRight(powerRight + 10 < maxPower ? powerRight + 10 : maxPower);
+            sendDataStream(`d`);
         } else if (request.direction === 'up') {
-            setPowerLeft(powerLeft + 10 < maxPower ? powerLeft + 10 : maxPower);
-            setPowerRight(powerRight + 10 < maxPower ? powerRight + 10 : maxPower);
+            sendDataStream(`w`);
         } else if (request.direction === 'down') {
-            setPowerLeft(powerLeft - 10 < 0 ? 0 : powerLeft - 10);
-            setPowerRight(powerRight - 10 < 0 ? 0 : powerRight - 10);
+            sendDataStream(`s`);
         }
     }
+
+    useEffect(() => {
+        connectToDevice("4C:24:98:2C:1C:1F");
+    }, []);
 
     return (
         <ParallaxScrollView
@@ -43,7 +63,7 @@ export default function BoatControllerScreen() {
                         style={styles.powerPanelLeft}
                     >
                         <PowerPanel currentPower={powerLeft} maxPower={maxPower} onPowerChange={() => console.log("123")} />
-                        <ThemedText style={{ textAlign: 'center' }}>{powerLeft}</ThemedText>
+                        <ThemedText style={{ textAlign: 'center' }}>{streamData}</ThemedText>
                     </View>
                     <View
                         style={styles.centerContainer}
@@ -54,7 +74,7 @@ export default function BoatControllerScreen() {
                         style={styles.powerPanelRight}
                     >
                         <PowerPanel currentPower={powerRight} maxPower={maxPower} onPowerChange={() => console.log("123")} />
-                        <ThemedText style={{ textAlign: 'center' }}>{powerRight}</ThemedText>
+                        <ThemedText style={{ textAlign: 'center' }}>{streamData}</ThemedText>
                     </View>
                 </View>
             </ThemedView>
@@ -62,69 +82,80 @@ export default function BoatControllerScreen() {
                 style={styles.buttonControllerOuter}
             >
                 <ThemedView
-                    style={styles.buttonController}
+                    style={styles.buttonControllers}
                 >
-
                     <View
-                        style={[styles.buttonControllerItem, styles.buttonControllerLeft]}
+                        style={styles.buttonControllerUp}
                     >
-                        <TouchableNativeFeedback
-                            onPress={() => changePower({ direction: 'left' })}
-                        >
-                            <View
-                                style={styles.buttonControllerItem}
-                            >
-                                <Ionicons name="arrow-back" size={100} color="black" style={styles.buttonControllerIcon} />
-                            </View>
-                        </TouchableNativeFeedback>
-                    </View>
-
-                    <View
-                        style={[styles.buttonControllerItem, styles.buttonControllerRight]}
-                    >
-                        <TouchableNativeFeedback
-                            onPress={() => changePower({ direction: 'right' })}
-                        >
-                            <View
-                                style={styles.buttonControllerItem}
-                            >
-                                <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
-                                    transform: [{ rotate: '180deg' }]
-                                }]} />
-                            </View>
-                        </TouchableNativeFeedback>
-                    </View>
-
-                    <View
-                        style={[styles.buttonControllerItem, styles.buttonControllerUp]}
-                    >
-                        <TouchableNativeFeedback
+                        <ButtonControl
                             onPress={() => changePower({ direction: 'up' })}
                         >
-                            <View
-                                style={styles.buttonControllerItem}
-                            >
-                                <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
-                                    transform: [{ rotate: '90deg' }]
-                                }]} />
-                            </View>
-                        </TouchableNativeFeedback>
+                            <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
+                                transform: [{ rotate: '90deg' }]
+                            }]} />
+                        </ButtonControl>
                     </View>
 
                     <View
-                        style={[styles.buttonControllerItem, styles.buttonControllerDown]}
+                        style={styles.buttonControllerLeft}
                     >
-                        <TouchableNativeFeedback
+                        <ButtonControl
+                            onPress={() => changePower({ direction: 'left' })}
+                        >
+                            <Ionicons name="arrow-back" size={100} color="black" style={styles.buttonControllerIcon} />
+                        </ButtonControl>
+                    </View>
+
+                    <View
+                        style={styles.buttonControllerRight}
+                    >
+                        <ButtonControl
+                            onPress={() => changePower({ direction: 'right' })}
+                        >
+                            <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
+                                transform: [{ rotate: '180deg' }]
+                            }]} />
+                        </ButtonControl>
+                    </View>
+
+                    <View
+                        style={styles.buttonControllerDown}
+                    >
+                        <ButtonControl
                             onPress={() => changePower({ direction: 'down' })}
                         >
-                            <View
-                                style={styles.buttonControllerItem}
-                            >
-                                <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
-                                    transform: [{ rotate: '-90deg' }]
-                                }]} />
-                            </View>
-                        </TouchableNativeFeedback>
+                            <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
+                                transform: [{ rotate: '-90deg' }]
+                            }]} />
+                        </ButtonControl>
+                    </View>
+
+                    <View
+                        style={[styles.buttonControllerItem, styles.buttonControllerCenter]}
+                    >
+                        {
+                            connectedDevice ? (
+                                <TouchableNativeFeedback
+                                    onPress={() => disconnectFromDevice()}
+                                >
+                                    <View
+                                        style={styles.buttonControllerItem}
+                                    >
+                                        <Ionicons name="power" size={50} color="black" style={styles.buttonControllerIcon} />
+                                    </View>
+                                </TouchableNativeFeedback>
+                            ) : (
+                                <TouchableNativeFeedback
+                                    onPress={() => startStreamingData()}
+                                >
+                                    <View
+                                        style={styles.buttonControllerItem}
+                                    >
+                                        <Ionicons name="power" size={50} color="black" style={styles.buttonControllerIcon} />
+                                    </View>
+                                </TouchableNativeFeedback>
+                            )
+                        }
                     </View>
 
                 </ThemedView>
@@ -183,7 +214,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    buttonController: {
+    buttonControllers: {
         width: 300,
         height: 250,
     },
@@ -214,5 +245,15 @@ const styles = StyleSheet.create({
     buttonControllerDown: {
         bottom: 0,
         left: 100,
+    },
+
+    buttonControllerCenter: {
+        position: 'absolute',
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        left: 125,
+        top: 75,
     },
 });

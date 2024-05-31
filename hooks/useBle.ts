@@ -94,6 +94,8 @@ const useBle = (): BluetoothLowEnergyApi => {
                         .then((characteristics) => {
                             // console.log(characteristics);
                         });
+                }).then(() => {
+                    startStreamingDataStatic(deviceConnection);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -101,6 +103,21 @@ const useBle = (): BluetoothLowEnergyApi => {
             setConnectedDevice(deviceConnection);
         } catch (e) {
             console.error(e);
+        }
+    };
+
+    const startStreamingDataStatic = async (device: Device) => {
+        if (device) {
+            console.log('Starting Stream');
+            device.monitorCharacteristicForService(
+                service,
+                characteristic,
+                (error, characteristic) => {
+                    onStreamDataChange(error, characteristic);
+                }
+            );
+        } else {
+            console.log('No Device Connected');
         }
     };
 

@@ -10,6 +10,9 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const colors = {
+    button: 'blue',
+};
 
 import useBle from '@/hooks/useBle';
 
@@ -18,14 +21,14 @@ export default function BoatControllerScreen() {
         allDevices,
         connectedDevice,
         streamData,
-    
+
         requestPermission,
         scanForDevices,
         stopScanning,
-    
+
         connectToDevice,
         disconnectFromDevice,
-    
+
         sendDataStream,
         startStreamingData,
     } = useBle();
@@ -34,7 +37,7 @@ export default function BoatControllerScreen() {
     const [powerLeft, setPowerLeft] = useState(0);
     const [powerRight, setPowerRight] = useState(0);
 
-    const changePower = (request: {direction: string}) => {
+    const changePower = (request: { direction: string }) => {
         if (request.direction === 'left') {
             sendDataStream(`a`);
         } else if (request.direction === 'right') {
@@ -47,7 +50,7 @@ export default function BoatControllerScreen() {
     }
 
     useEffect(() => {
-        connectToDevice("4C:24:98:2C:1C:1F");
+        // connectToDevice("4C:24:98:2C:1C:1F");
     }, []);
 
     return (
@@ -84,80 +87,77 @@ export default function BoatControllerScreen() {
                 <ThemedView
                     style={styles.buttonControllers}
                 >
-                    <View
-                        style={styles.buttonControllerUp}
-                    >
-                        <ButtonControl
-                            onPress={() => changePower({ direction: 'up' })}
-                        >
-                            <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
-                                transform: [{ rotate: '90deg' }]
-                            }]} />
-                        </ButtonControl>
-                    </View>
+                    {
+                        connectedDevice ? (
+                            <>
+                                <View
+                                    style={[styles.buttonControllerItem, styles.buttonControllerUp]}
+                                >
+                                    <ButtonControl
+                                        onPress={() => changePower({ direction: 'up' })}
+                                    >
+                                        <Ionicons name="arrow-back" size={100} color={colors.button} style={[styles.buttonControllerIcon, {
+                                            transform: [{ rotate: '90deg' }]
+                                        }]} />
+                                    </ButtonControl>
+                                </View>
 
-                    <View
-                        style={styles.buttonControllerLeft}
-                    >
-                        <ButtonControl
-                            onPress={() => changePower({ direction: 'left' })}
-                        >
-                            <Ionicons name="arrow-back" size={100} color="black" style={styles.buttonControllerIcon} />
-                        </ButtonControl>
-                    </View>
+                                <View
+                                    style={[styles.buttonControllerItem, styles.buttonControllerLeft]}
+                                >
+                                    <ButtonControl
+                                        onPress={() => changePower({ direction: 'left' })}
+                                    >
+                                        <Ionicons name="arrow-back" size={100} color={colors.button} style={styles.buttonControllerIcon} />
+                                    </ButtonControl>
+                                </View>
 
-                    <View
-                        style={styles.buttonControllerRight}
-                    >
-                        <ButtonControl
-                            onPress={() => changePower({ direction: 'right' })}
-                        >
-                            <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
-                                transform: [{ rotate: '180deg' }]
-                            }]} />
-                        </ButtonControl>
-                    </View>
+                                <View
+                                    style={[styles.buttonControllerItem, styles.buttonControllerRight]}
+                                >
+                                    <ButtonControl
+                                        onPress={() => changePower({ direction: 'right' })}
+                                    >
+                                        <Ionicons name="arrow-back" size={100} color={colors.button} style={[styles.buttonControllerIcon, {
+                                            transform: [{ rotate: '180deg' }]
+                                        }]} />
+                                    </ButtonControl>
+                                </View>
 
-                    <View
-                        style={styles.buttonControllerDown}
-                    >
-                        <ButtonControl
-                            onPress={() => changePower({ direction: 'down' })}
-                        >
-                            <Ionicons name="arrow-back" size={100} color="black" style={[styles.buttonControllerIcon, {
-                                transform: [{ rotate: '-90deg' }]
-                            }]} />
-                        </ButtonControl>
-                    </View>
+                                <View
+                                    style={[styles.buttonControllerItem, styles.buttonControllerDown]}
+                                >
+                                    <ButtonControl
+                                        onPress={() => changePower({ direction: 'down' })}
+                                    >
+                                        <Ionicons name="arrow-back" size={100} color={colors.button} style={[styles.buttonControllerIcon, {
+                                            transform: [{ rotate: '-90deg' }]
+                                        }]} />
+                                    </ButtonControl>
+                                </View>
 
-                    <View
-                        style={[styles.buttonControllerItem, styles.buttonControllerCenter]}
-                    >
-                        {
-                            connectedDevice ? (
-                                <TouchableNativeFeedback
+                                <View
+                                style={[styles.buttonControllerItem, styles.buttonControllerCenter]}
+                            >
+                                <ButtonControl
                                     onPress={() => disconnectFromDevice()}
                                 >
-                                    <View
-                                        style={styles.buttonControllerItem}
-                                    >
-                                        <Ionicons name="power" size={50} color="black" style={styles.buttonControllerIcon} />
-                                    </View>
-                                </TouchableNativeFeedback>
-                            ) : (
-                                <TouchableNativeFeedback
-                                    onPress={() => startStreamingData()}
+                                    <Ionicons name="power" size={50} color="red" style={styles.buttonControllerIcon} />
+                                </ButtonControl>
+                            </View>
+                            </>
+                        ) : (
+                            <View
+                                style={[styles.buttonControllerItem, styles.buttonControllerCenter]}
+                            >
+                                <ButtonControl
+                                    onPress={() => connectToDevice("4C:24:98:2C:1C:1F")}
                                 >
-                                    <View
-                                        style={styles.buttonControllerItem}
-                                    >
-                                        <Ionicons name="power" size={50} color="black" style={styles.buttonControllerIcon} />
-                                    </View>
-                                </TouchableNativeFeedback>
-                            )
-                        }
-                    </View>
-
+                                    <Ionicons name="bluetooth" size={50} color="green" style={styles.buttonControllerIcon} />
+                                </ButtonControl>
+                            </View>
+                        )
+                    }
                 </ThemedView>
             </ThemedView>
         </ParallaxScrollView >
@@ -215,7 +215,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     buttonControllers: {
-        width: 300,
+        position: 'relative',
+        width: SCREEN_WIDTH,
         height: 250,
     },
 
@@ -224,36 +225,34 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
     },
     buttonControllerIcon: {
         borderRadius: 50,
     },
 
     buttonControllerLeft: {
-        right: 180,
+        left: 20,
         top: 80,
     },
     buttonControllerRight: {
-        left: 180,
+        right: 20,
         top: 80,
     },
     buttonControllerUp: {
         top: 0,
-        left: 100,
+        left: SCREEN_WIDTH / 2 - 50,
     },
     buttonControllerDown: {
         bottom: 0,
-        left: 100,
+        left: SCREEN_WIDTH / 2 - 50,
     },
 
     buttonControllerCenter: {
         position: 'absolute',
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+        width: 100,
+        height: 100,
         backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        left: 125,
-        top: 75,
+        left: SCREEN_WIDTH / 2 - 50,
+        top: 80,
     },
 });

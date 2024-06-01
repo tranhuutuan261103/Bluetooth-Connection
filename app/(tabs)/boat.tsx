@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, View, Text, ScrollView, Image, StyleSheet, TouchableNativeFeedback } from 'react-native';
+import { Dimensions, View, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -33,7 +33,7 @@ export default function BoatControllerScreen() {
         startStreamingData,
     } = useBle();
 
-    const maxPower = 180;
+    const maxPower = 4;
     const [powerLeft, setPowerLeft] = useState(0);
     const [powerRight, setPowerRight] = useState(0);
 
@@ -49,9 +49,17 @@ export default function BoatControllerScreen() {
         }
     }
 
+    const extractData = (data: string) => {
+        const [left, right] = data.split(',');
+        setPowerLeft(parseFloat(left));
+        setPowerRight(parseFloat(right));
+    }
+
     useEffect(() => {
-        // connectToDevice("4C:24:98:2C:1C:1F");
-    }, []);
+        if (connectedDevice && streamData) {
+            extractData(streamData);
+        }
+    }, [streamData]);
 
     return (
         <ParallaxScrollView
@@ -66,7 +74,7 @@ export default function BoatControllerScreen() {
                         style={styles.powerPanelLeft}
                     >
                         <PowerPanel currentPower={powerLeft} maxPower={maxPower} onPowerChange={() => console.log("123")} />
-                        <ThemedText style={{ textAlign: 'center' }}>{streamData}</ThemedText>
+                        <ThemedText style={{ textAlign: 'center' }}>{powerLeft}</ThemedText>
                     </View>
                     <View
                         style={styles.centerContainer}
@@ -77,7 +85,7 @@ export default function BoatControllerScreen() {
                         style={styles.powerPanelRight}
                     >
                         <PowerPanel currentPower={powerRight} maxPower={maxPower} onPowerChange={() => console.log("123")} />
-                        <ThemedText style={{ textAlign: 'center' }}>{streamData}</ThemedText>
+                        <ThemedText style={{ textAlign: 'center' }}>{powerRight}</ThemedText>
                     </View>
                 </View>
             </ThemedView>

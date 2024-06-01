@@ -149,6 +149,7 @@ const useBle = (): BluetoothLowEnergyApi => {
         }
 
         const rawData = atob(characteristic.value);
+        console.log('Data Recieved', rawData);
 
         setStreamData(rawData);
     };

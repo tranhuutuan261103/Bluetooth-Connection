@@ -1,8 +1,7 @@
-import Animated, {
-    useAnimatedStyle,
-} from "react-native-reanimated";
+import React from 'react';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import type { PropsWithChildren, ReactElement } from 'react';
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 type Props = PropsWithChildren<{
@@ -12,20 +11,19 @@ type Props = PropsWithChildren<{
 }>;
 
 export default function PowerPanel({ maxPower, currentPower, onPowerChange }: Props) {
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            height: withTiming((1 - currentPower / maxPower) * 115, { duration: 500 }),
+        };
+    });
+
     return (
         <LinearGradient
             colors={['#f00', '#0f0']}
             style={styles.container}
         >
             <Animated.View
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: 35,
-                    height: (1 - currentPower / maxPower) * 150,
-                    backgroundColor: "#fff",
-                }}
+                style={[styles.animatedView, animatedStyle]}
             />
         </LinearGradient>
     );
@@ -35,9 +33,16 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'column',
         justifyContent: 'flex-start',
-        height: 160,
+        height: 120,
         width: 35,
         borderColor: 'rgba(255, 255, 255, 0.5)',
         overflow: 'hidden',
-    }
+    },
+    animatedView: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: 35,
+        backgroundColor: "#fff",
+    },
 });

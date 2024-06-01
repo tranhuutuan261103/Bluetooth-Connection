@@ -2,13 +2,14 @@ import { PropsWithChildren } from 'react';
 import { View, StyleSheet, TouchableNativeFeedback } from 'react-native';
 
 type Props = PropsWithChildren<{
-    onPress: () => void;
+    onPressIn: () => void;
+    onPressOut: () => void;
 }>;
 
-export default function ButtonControl({ children, onPress }: Props) {
+export default function ButtonControl({ children, onPressIn, onPressOut }: Props) {
     return (
         <View style={styles.buttonControllerItem}>
-            <TouchableNativeFeedback onPress={onPress}>
+            <TouchableNativeFeedback onPressIn={onPressIn} onPressOut={onPressOut}>
                 <View style={styles.buttonContent}>
                     {children}
                 </View>

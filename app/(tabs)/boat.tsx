@@ -18,22 +18,18 @@ import useBle from '@/hooks/useBle';
 
 export default function BoatControllerScreen() {
     const {
-        allDevices,
         connectedDevice,
         streamData,
 
         requestPermission,
-        scanForDevices,
-        stopScanning,
 
         connectToDevice,
         disconnectFromDevice,
 
         sendDataStream,
-        startStreamingData,
     } = useBle();
 
-    const maxPower = 4;
+    const maxPower = 50;
     const [powerLeft, setPowerLeft] = useState(0);
     const [powerRight, setPowerRight] = useState(0);
 
@@ -46,6 +42,8 @@ export default function BoatControllerScreen() {
             sendDataStream(`w`);
         } else if (request.direction === 'down') {
             sendDataStream(`s`);
+        } else if (request.direction === 'stop') {
+            sendDataStream(`x`);
         }
     }
 
@@ -75,6 +73,7 @@ export default function BoatControllerScreen() {
                     >
                         <PowerPanel currentPower={powerLeft} maxPower={maxPower} onPowerChange={() => console.log("123")} />
                         <ThemedText style={{ textAlign: 'center' }}>{powerLeft}</ThemedText>
+                        <ThemedText style={{ textAlign: 'center' }}>cm/s</ThemedText>
                     </View>
                     <View
                         style={styles.centerContainer}
@@ -86,6 +85,7 @@ export default function BoatControllerScreen() {
                     >
                         <PowerPanel currentPower={powerRight} maxPower={maxPower} onPowerChange={() => console.log("123")} />
                         <ThemedText style={{ textAlign: 'center' }}>{powerRight}</ThemedText>
+                        <ThemedText style={{ textAlign: 'center' }}>cm/s</ThemedText>
                     </View>
                 </View>
             </ThemedView>
@@ -102,7 +102,8 @@ export default function BoatControllerScreen() {
                                     style={[styles.buttonControllerItem, styles.buttonControllerUp]}
                                 >
                                     <ButtonControl
-                                        onPress={() => changePower({ direction: 'up' })}
+                                        onPressIn={() => changePower({ direction: 'up' })}
+                                        onPressOut={() => changePower({ direction: 'stop' })}
                                     >
                                         <Ionicons name="arrow-back" size={100} color={colors.button} style={[styles.buttonControllerIcon, {
                                             transform: [{ rotate: '90deg' }]
@@ -114,7 +115,8 @@ export default function BoatControllerScreen() {
                                     style={[styles.buttonControllerItem, styles.buttonControllerLeft]}
                                 >
                                     <ButtonControl
-                                        onPress={() => changePower({ direction: 'left' })}
+                                        onPressIn={() => changePower({ direction: 'left' })}
+                                        onPressOut={() => changePower({ direction: 'stop' })}
                                     >
                                         <Ionicons name="arrow-back" size={100} color={colors.button} style={styles.buttonControllerIcon} />
                                     </ButtonControl>
@@ -124,7 +126,8 @@ export default function BoatControllerScreen() {
                                     style={[styles.buttonControllerItem, styles.buttonControllerRight]}
                                 >
                                     <ButtonControl
-                                        onPress={() => changePower({ direction: 'right' })}
+                                        onPressIn={() => changePower({ direction: 'right' })}
+                                        onPressOut={() => changePower({ direction: 'stop' })}
                                     >
                                         <Ionicons name="arrow-back" size={100} color={colors.button} style={[styles.buttonControllerIcon, {
                                             transform: [{ rotate: '180deg' }]
@@ -136,7 +139,8 @@ export default function BoatControllerScreen() {
                                     style={[styles.buttonControllerItem, styles.buttonControllerDown]}
                                 >
                                     <ButtonControl
-                                        onPress={() => changePower({ direction: 'down' })}
+                                        onPressIn={() => changePower({ direction: 'down' })}
+                                        onPressOut={() => changePower({ direction: 'stop' })}
                                     >
                                         <Ionicons name="arrow-back" size={100} color={colors.button} style={[styles.buttonControllerIcon, {
                                             transform: [{ rotate: '-90deg' }]
@@ -148,7 +152,8 @@ export default function BoatControllerScreen() {
                                 style={[styles.buttonControllerItem, styles.buttonControllerCenter]}
                             >
                                 <ButtonControl
-                                    onPress={() => disconnectFromDevice()}
+                                    onPressIn={() => disconnectFromDevice()}
+                                    onPressOut={() => {}}
                                 >
                                     <Ionicons name="power" size={50} color="red" style={styles.buttonControllerIcon} />
                                 </ButtonControl>
@@ -159,7 +164,8 @@ export default function BoatControllerScreen() {
                                 style={[styles.buttonControllerItem, styles.buttonControllerCenter]}
                             >
                                 <ButtonControl
-                                    onPress={() => connectToDevice("4C:24:98:2C:1C:1F")}
+                                    onPressIn={() => connectToDevice("4C:24:98:2C:1C:1F")}
+                                    onPressOut={() => {}}
                                 >
                                     <Ionicons name="bluetooth" size={50} color="green" style={styles.buttonControllerIcon} />
                                 </ButtonControl>
@@ -199,13 +205,15 @@ const styles = StyleSheet.create({
     },
 
     powerPanelLeft: {
-        width: 35,
-        height: 180,
+        alignItems: 'center',
+        width: 55,
+        height: 160,
     },
 
     powerPanelRight: {
-        width: 35,
-        height: 180,
+        alignItems: 'center',
+        width: 55,
+        height: 160,
     },
 
     centerContainer: {
@@ -225,7 +233,7 @@ const styles = StyleSheet.create({
     buttonControllers: {
         position: 'relative',
         width: SCREEN_WIDTH,
-        height: 250,
+        height: 300,
     },
 
     buttonControllerItem: {
@@ -240,11 +248,11 @@ const styles = StyleSheet.create({
 
     buttonControllerLeft: {
         left: 20,
-        top: 80,
+        top: 100,
     },
     buttonControllerRight: {
         right: 20,
-        top: 80,
+        top: 100,
     },
     buttonControllerUp: {
         top: 0,
@@ -257,10 +265,10 @@ const styles = StyleSheet.create({
 
     buttonControllerCenter: {
         position: 'absolute',
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
         backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        left: SCREEN_WIDTH / 2 - 50,
-        top: 80,
+        left: SCREEN_WIDTH / 2 - 40,
+        top: 110,
     },
 });

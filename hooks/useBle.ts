@@ -142,6 +142,7 @@ const useBle = (): BluetoothLowEnergyApi => {
     ) => {
         if (error) {
             console.log(error);
+            setConnectedDevice(null);
             return -1;
         } else if (!characteristic?.value) {
             console.log('No Data was recieved');
